@@ -1,84 +1,93 @@
 ---
-title: Text Analysis
+title: "Text analysis on iPod Reviews"
 output: html_notebook
 ---
+For this project I'll be using the libraries topicmodels and quaneda
 ``` {r}
-install.packages(c("quanteda", "topicmodels"))
-```
-``` {r}
-library(quanteda)
 library(topicmodels)
+library(quanteda)
 ```
-
-# when working with text data, we need to set stringsAsFactors as FALSE:
+When working with text data, we need to set stringsAsFactors as FALSE:
+``` {r}
 reviews = read.csv("product_reviews.csv", stringsAsFactors = FALSE)
-
-# what columns are in our reviews data?
+```
+What columns are in our reviews data?
+``` {r}
 colnames(reviews)
-
-# the reviews are in the "Content" column; this will call the first review:
+```
+The reviews are in the "Content" column; this will call the first review:
+```{r}
 reviews$Content[1:5]
-
-# Create a corpus for those reviews, which just turns a text column into a set of documents:
+```
+Create a corpus for those reviews, which just turns a text column into a set of documents:
+```{r}
 review_corpus = corpus(reviews$Content[1:200])
 summary(review_corpus)
-
+```
+Remove punctuation and numbers from the corpus
+```{r}
 review_tokens <- tokens(review_corpus[1:200], remove_punct = TRUE, remove_numbers = TRUE)
-
+```
+Remove stopwords from the corpus
+```{r}
 review_tokens_semi_clean <-tokens_remove(review_tokens, pattern = stopwords("en"))
-
+```
+Remove wordstems from the corpus
+```{r}
 review_tokens_clean<-tokens_wordstem(review_tokens_semi_clean)
-
-# Summarize the text using a document-term frequency matrix (DFM):
+```
+Summarize the text using a document-term frequency matrix (DFM):
+```{r}
 review_dfm = dfm(review_tokens_clean)
 print(review_dfm)
-
-
-# "Trim" the DFM to keep only words that occur in more than 1% of documents but less than 75%:   
+```
+"Trim" the DFM to keep only words that occur in more than 1% of documents but less than 75%:  
+```{r}
 trimmed_dfm = dfm_trim(review_dfm, min_docfreq = 0.01, max_docfreq = 0.75, docfreq_type = "prop")
 print(trimmed_dfm)
 dim(trimmed_dfm)
+```
+## Sentiment Analysis
 
-## SENTIMENT ANALYSIS ---------------------------------------------------------------
-
-# To run sentiment analysis, we need a lexicon. In Quanteda, lexicons are also referred 
-# to as dictionaries. An easy lexicon to use is the LSD lexicon, which just scores words 
-# as negative or positive. It is available simply by calling "data_dictionary_LSD2015":
-
+To run sentiment analysis, we need a lexicon. In Quanteda, lexicons are also referred to as dictionaries. An easy lexicon to use is the LSD lexicon, which just scores words as negative or positive. It is available simply by calling "data_dictionary_LSD2015":
+```{r}
 data_dictionary_LSD2015
-
-# To use this for sentiment analysis, we again use the dfm command:
-
+```
+To use this for sentiment analysis, we again use the dfm command:
+```{r}
 senti = dfm_lookup(trimmed_dfm, dictionary = data_dictionary_LSD2015)
 senti
-# Let's compute the fraction of positive words:
+```
+Let's compute the fraction of positive words:
+```{r}
 frac_pos = senti[,2]/(senti[,1]+senti[,2])
-
-# Does the fraction of positive words correlate with the star rating?
+```
+Does the fraction of positive words correlate with the star rating?
+```{r}
 boxplot(as.matrix(frac_pos) ~ reviews$Rating[1:200], horizontal = TRUE, xlab = "Fraction of Positive Sentiment", ylab = "Star Rating")
+```
+## Topic Modelling
 
-## TOPIC MODELING ---------------------------------------------------------------
-
-# First, convert the DFM to the format needed for LDA from the topicmodels package:
+First, convert the DFM to the format needed for LDA from the topicmodels package:
+```{r}
 dtm_reviews = convert(trimmed_dfm, to="topicmodels")
-
-# Pick the number of topics, and run LDA:
-n_topics = 10
+```
+Pick the number of topics, and run LDA. There are two methods you can use, which control which algorithm is learn the model parameters: the default is method="VEM", which is faster, but the other option, method="Gibbs" often gives better results
+```{r}
+n_topics = 6
 rev_lda = LDA(dtm_reviews, k=n_topics, method="Gibbs") 
-# Note: This may take some time to run!
-# There are two methods you can use, which control which algorithm is learn the model parameters:
-# the default is method="VEM", which is faster, but the other option, method="Gibbs" often gives 
-# better results. 
+```
+To see the results, we have to either call "terms" or "posterior"
 
-# To see the results, we have to either call "terms" or "posterior"
-#  - "terms" shows us the top k words that are associated with each topic:
+- "terms" shows us the top k words that are associated with each topic:
+```{r}
 terms(rev_lda, k=5)
-
-#  - "posterior" shows which topics a given document (or, in this case, review) features,
-#    similar to the factor scores from factor analysis 
+```
+- "posterior" shows which topics a given document (or, in this case, review) features,
+```{r}
 posterior(rev_lda)$topics[1,]
-
-# Let's see if these topics are predictive of the star rating:
+```
+Let's see if these topics are predictive of the star rating:
+```{r}
 summary(lm(reviews$Rating[1:200] ~ 0 + posterior(rev_lda)$topics))
-
-# IMPORTANT: you can't use an intercept here (ask yourself: why?)
+```
