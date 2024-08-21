@@ -2,10 +2,10 @@
 title: Text Analysis
 output: html_notebook
 ---
-```
+``` {r}
 install.packages(c("quanteda", "topicmodels"))
 ```
-```
+``` {r}
 library(quanteda)
 library(topicmodels)
 ```
