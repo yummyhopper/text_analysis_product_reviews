@@ -1,5 +1,7 @@
 # Text Analysis on Apple Product Reviews
 
+![nlp_sentiment_analysis2](https://github.com/user-attachments/assets/8b894af3-681d-4a4a-8b41-9e8e25298dee)
+
 ### Introduction
 
 This repository contains a comprehensive analysis of iPod reviews using text mining techniques. By leveraging the topicmodels and quanteda libraries in R, the project focuses on extracting meaningful insights from customer feedback. The analysis includes preprocessing the text data, performing sentiment analysis, and conducting topic modeling to identify key themes within the reviews. The repository provides all necessary code and documentation for replicating the analysis, making it a valuable resource for anyone interested in text analytics and sentiment analysis in consumer reviews.
