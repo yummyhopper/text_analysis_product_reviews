@@ -1,7 +1,6 @@
 # Text Analysis on Apple Product Reviews
 
-![Sentiment-Analysis](https://github.com/user-attachments/assets/1221d907-d1fc-4e1c-a1d9-46edb4b6db85)
-
+![1_DVONSUOkxm_c3XALlSP1lg](https://github.com/user-attachments/assets/ebd0dc15-4de8-4c36-aef5-296dd681e67a)
 
 ### Introduction
 
